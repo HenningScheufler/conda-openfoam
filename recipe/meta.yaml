@@ -1,0 +1,80 @@
+{% set name = "openfoam" %}
+{% set version = "v2212" %}
+
+package:
+  name: {{ name }}
+  version: {{ version }}
+
+source:
+  url: https://sourceforge.net/projects/openfoam/files/{{ version }}/OpenFOAM-{{ version }}.tgz
+  folder: OpenFOAM-{{ version }}
+  md5: 889c9a2169c0b6911050de149a5b459b
+#  - url: https://github.com/OpenFOAM/ThirdParty-{{ version }}/archive/refs/tags/version-{{ version }}.tar.gz 
+#    folder: ThirdParty-{{ version }}
+
+build:
+  number: 0
+  rpaths:
+    - lib/
+    - lib/sys-openmpi/
+    - lib/dummy/
+
+requirements:
+  build:
+    - gcc
+    - gxx
+    - cmake
+    - make
+    - openmpi
+    - flex
+    - ncurses
+    - parmetis
+    - scotch
+    - ptscotch
+    - kahip
+    - petsc
+    - hypre
+#    - adios2
+  host:
+    - gcc
+    - gxx
+    - cmake
+    - make
+    - openmpi
+    - flex
+    - ncurses
+    - parmetis
+    - scotch
+    - ptscotch
+    - kahip
+    - petsc
+    - hypre
+#    - adios2
+  run:
+    - openmpi
+    - flex
+    - ncurses
+    - parmetis
+    - scotch
+    - ptscotch
+    - kahip
+    - petsc
+    - hypre
+#    - adios2
+
+# TODO: add test
+#test:
+#  commands:
+
+about:
+  home: https://openfoam.com/
+  license: GPL3
+  license_family: GPL
+  summary: OpenFOAM-{{ version }} 
+  description: OpenFOAM is a free, open source computational fluid dynamics (CFD) software package released by the ESI.
+#  doc_url: https://openfoam.org/resources/
+#  dev_url: https://github.com/OpenFOAM/OpenFOAM-9
+
+extra:
+  recipe-maintainers:
+    - Henning Scheufler 
