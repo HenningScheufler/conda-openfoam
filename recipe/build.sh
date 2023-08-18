@@ -5,31 +5,36 @@ export FOAM_DIR_NAME="${SRC_DIR}/OpenFOAM-${PKG_VERSION}"
 #   source foam dot file throws error if not compiled
 sed -i 's/\$WM_PROJECT_DIR\/platforms\/\$WM_OPTIONS/\$\{PREFIX\}/g' ${FOAM_DIR_NAME}/etc/config.sh/settings
 source "${FOAM_DIR_NAME}/etc/bashrc" || true
+export CONFIGSHDIR=${FOAM_DIR_NAME}/etc/config.sh
 
+# change scotch version to the conda version
+sed -i 's/^SCOTCH_VERSION=.*/SCOTCH_VERSION=scotch-system/g' ${CONFIGSHDIR}/scotch
+sed -i 's/^export SCOTCH_ARCH_PATH=.*/export SCOTCH_ARCH_PATH=${PREFIX}/g' ${CONFIGSHDIR}/scotch
+
+# change kahip version to the conda version
+sed -i 's/^KAHIP_VERSION=.*/KAHIP_VERSION=kahip-system/g' ${CONFIGSHDIR}/kahip
+sed -i 's/^export KAHIP_ARCH_PATH=.*/export KAHIP_ARCH_PATH=${PREFIX}/g' ${CONFIGSHDIR}/kahip
+
+# change metis version to the conda version
+sed -i 's/^METIS_VERSION=.*/METIS_VERSION=metis-system/g' ${CONFIGSHDIR}/metis
+sed -i 's/^export METIS_ARCH_PATH=.*/export METIS_ARCH_PATH=${PREFIX}/g' ${CONFIGSHDIR}/metis
+
+# change petsc version to the conda version
+sed -i 's/^petsc_version=.*/petsc_version=petsc-system/g' ${CONFIGSHDIR}/petsc
+sed -i 's/^export PETSC_ARCH_PATH=.*/export PETSC_ARCH_PATH=${PREFIX}/g' ${CONFIGSHDIR}/petsc
+
+# change hypre version to the conda version
+sed -i 's/^hypre_version=.*/hypre_version=hypre-system/g' ${CONFIGSHDIR}/hypre
+sed -i 's/^export HYPRE_ARCH_PATH=.*/export HYPRE_ARCH_PATH=${PREFIX}/g' ${CONFIGSHDIR}/hypre
 #
 echo "cFLAGS += -I ${BUILD_PREFIX}/include" >> "${FOAM_DIR_NAME}/wmake/rules/linux64Gcc/c"
 echo "c++FLAGS += -I ${BUILD_PREFIX}/include" >> "${FOAM_DIR_NAME}/wmake/rules/linux64Gcc/c++"
 
 # remove Allwmake falsely sets the headers to the system
 rm "${FOAM_DIR_NAME}/applications/utilities/mesh/manipulation/setSet/Allwmake"
-# Allwmake sets wrong flags
-sed -i 's/petsc4Foam\/Allwmake \$\*/\wmake libso petsc4Foam/g' ${FOAM_DIR_NAME}/modules/external-solver/src/Allwmake
-# have_scotch metis does not set the env variable correctly
-export DECOMPOSE_DIR=${FOAM_DIR_NAME}/src/parallel/decompose
-sed -i 's/if have_kahip/if true/g' ${DECOMPOSE_DIR}/Allwmake
-sed -i 's/if have_metis/if true/g' ${DECOMPOSE_DIR}/Allwmake
-sed -i 's/if have_scotch/if true/g' ${DECOMPOSE_DIR}/Allwmake
-
-sed -i 's/if have_scotch/if true/g' ${DECOMPOSE_DIR}/Allwmake-mpi
-sed -i 's/if have_ptscotch/if true/g' ${DECOMPOSE_DIR}/Allwmake-mpi
-
-# modify include path
-sed -i 's/\$(METIS_INC_DIR)/.\/lnInclude/g' ${DECOMPOSE_DIR}/metisDecomp/Make/options
-sed -i 's/\$(KAHIP_INC_DIR)/.\/lnInclude/g' ${DECOMPOSE_DIR}/kahipDecomp/Make/options
-sed -i 's/\$(SCOTCH_INC_DIR)/.\/lnInclude/g' ${DECOMPOSE_DIR}/scotchDecomp/Make/options
 
 #   compile openfoam
-${FOAM_DIR_NAME}/Allwmake -j -q 8 -l
+${FOAM_DIR_NAME}/Allwmake -j 6 -q -l
 
 #   install
 echo "Installing ..."

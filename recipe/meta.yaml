@@ -21,7 +21,7 @@ build:
 
 requirements:
   build:
-    - gcc
+    - gcc=11.2.0
     - gxx
     - cmake
     - make
@@ -36,7 +36,7 @@ requirements:
     - hypre
 #    - adios2
   host:
-    - gcc
+    - gcc=11.2.0
     - gxx
     - cmake
     - make
