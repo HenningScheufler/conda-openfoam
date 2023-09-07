@@ -2,7 +2,8 @@
 
 export FOAM_DIR_NAME="${SRC_DIR}/OpenFOAM-${PKG_VERSION}"
 
-#   source foam dot file throws error if not compiled
+# source foam dot file throws error if not compiled
+# modify the the output folder of the binaries 
 sed -i 's/\$WM_PROJECT_DIR\/platforms\/\$WM_OPTIONS/\$\{PREFIX\}/g' ${FOAM_DIR_NAME}/etc/config.sh/settings
 source "${FOAM_DIR_NAME}/etc/bashrc" || true
 export CONFIGSHDIR=${FOAM_DIR_NAME}/etc/config.sh
@@ -34,23 +35,36 @@ echo "c++FLAGS += -I ${BUILD_PREFIX}/include" >> "${FOAM_DIR_NAME}/wmake/rules/l
 rm "${FOAM_DIR_NAME}/applications/utilities/mesh/manipulation/setSet/Allwmake"
 
 #   compile openfoam
-${FOAM_DIR_NAME}/Allwmake -j 6 -q -l
+${FOAM_DIR_NAME}/Allwmake -j 2 -q -l
 
 #   install
 echo "Installing ..."
 
 cd ${FOAM_DIR_NAME}
+# transportProperties are not referenced via
+mkdir -p  ${PREFIX}/include/OpenFOAM-${PKG_VERSION}/src/
+cp -Lr src/transportModels ${PREFIX}/include/OpenFOAM-${PKG_VERSION}/src/
+
 #copy header in the include folder
 for f in $(find . -type d -name lnInclude)
 do
-    mkdir -p  $(dirname ${PREFIX}/include/OpenFOAM-${PKG_VERSION}/${f})
+    if [ ! -d "$(dirname ${PREFIX}/include/OpenFOAM-${PKG_VERSION}/${f})" ]; then
+        mkdir -p  $(dirname ${PREFIX}/include/OpenFOAM-${PKG_VERSION}/${f})
+    fi
     cp -Lr ${f} $(dirname ${PREFIX}/include/OpenFOAM-${PKG_VERSION}/${f})
 done
 
+# copy wmake and modify wmake scripts
+SCRIPTDIR="\${0%\/\*}"
+NEW_SCRIPTDIR="\${WM_PROJECT_DIR:\?}\/wmake"
+sed -i "s/$SCRIPTDIR/$NEW_SCRIPTDIR/g" wmake/w*
+cp wmake/w* ${PREFIX}/bin
+
 # copy config and script files
-mkdir -p  ${PREFIX}/etc/OpenFOAM-${PKG_VERSION}/
-cp -r etc ${PREFIX}/etc/OpenFOAM-${PKG_VERSION}/ 
-cp -r bin ${PREFIX}/etc/OpenFOAM-${PKG_VERSION}/
+cp -r etc ${PREFIX}/include/OpenFOAM-${PKG_VERSION}/ 
+cp -r bin ${PREFIX}/include/OpenFOAM-${PKG_VERSION}/
+cp -r wmake ${PREFIX}/include/OpenFOAM-${PKG_VERSION}/
+cp -r platforms ${PREFIX}/include/OpenFOAM-${PKG_VERSION}/
 
 #   activation and deactivation scripts
 for SCRIPT_NAME in "activate" "deactivate"
